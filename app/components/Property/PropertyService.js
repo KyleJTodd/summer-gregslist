@@ -17,7 +17,7 @@ let _subscribers = {
 
 function _setState(propName, data) {
   _state[propName] = data
-  _subscribers[propName].forEach(fn => (fn))
+  _subscribers[propName].forEach(fn => fn())
 }
 
 //public
@@ -26,14 +26,28 @@ export default class PropertyService {
   addSubscriber(propName, fn) {
     _subscribers[propName].push(fn)
   }
-  get Properties() {
+  get Properties() { //from state
     return _state.properties.map(p => new Property(p))
   }
-  getAllProperty() {
+  getAllProperty() { //from api
     _propertyApi.get()
       .then(res => {
         let property = res.data.data.map(p => new Property(p))
+        _setState('properties', property)
       })
+      .catch(err => {
+        console.error(err)
+      })
+  }
+  addProp(propData) {
+    _propertyApi.post('', propData)
+      .then(res => {
+        this.getAllProperty()
+      })
+      .catch(err => {
+        console.error(err)
+      })
+
   }
 }
 
